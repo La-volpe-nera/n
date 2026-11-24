@@ -24,9 +24,20 @@ jobs:
       - name: Prepare SDK, NDK, CMake and Gradle config
         run: |
           set -e
-          set -o pipefail
-          yes | sdkmanager --licenses > /dev/null || true
-          sdkmanager --install "platforms;android-36" "build-tools;35.0.0" "ndk;28.2.13676358" "cmake;3.22.1"
+          SDK_ROOT="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          export ANDROID_HOME="$SDK_ROOT"
+          export ANDROID_SDK_ROOT="$SDK_ROOT"
+
+          SDKMANAGER=$(find "$SDK_ROOT" -name "sdkmanager" -type f 2>/dev/null | head -n 1)
+          echo "SDK_ROOT=$SDK_ROOT"
+          echo "SDKMANAGER=$SDKMANAGER"
+
+          if [ -n "$SDKMANAGER" ]; then
+            (yes || true) | "$SDKMANAGER" --sdk_root="$SDK_ROOT" --licenses > /dev/null || true
+            "$SDKMANAGER" --sdk_root="$SDK_ROOT" --install "platforms;android-36" "build-tools;35.0.0" "ndk;28.2.13676358" "cmake;3.22.1"
+          else
+            echo "AVISO: sdkmanager nao encontrado em $SDK_ROOT; tentando deixar o Gradle baixar o que precisar."
+          fi
 
           cat << 'EOF' > settings.gradle
           pluginManagement {
