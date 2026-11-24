@@ -39,6 +39,10 @@ jobs:
             echo "AVISO: sdkmanager nao encontrado em $SDK_ROOT; tentando deixar o Gradle baixar o que precisar."
           fi
 
+          if [ -f app/src/main/AndroidManifest.xml ]; then
+            sed -i -E 's/[[:space:]]+package="[^"]*"//g' app/src/main/AndroidManifest.xml
+          fi
+
           cat << 'EOF' > settings.gradle
           pluginManagement {
               repositories {
